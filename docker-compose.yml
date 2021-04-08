@@ -1,0 +1,29 @@
+version: "3"
+
+services: 
+  ### User Service ###
+  user:
+    build: "./user"
+    container_name: microservices_user
+    ports: 
+      - "3001:3000"
+  ### Product Service ###
+#  product:
+#    build: "./product"
+#    ports:
+#      - "3002:3000"
+#  ### Transaction Service ###
+#  transaction:
+#    build: "./transaction"
+#    ports:
+#      - "3003:3000"
+  ### Nginx ###
+  nginx:
+    image: nginx:latest
+    container_name: microservices_nginx
+    ports: 
+      - "80:80"
+    volumes: 
+      - "./default.conf:/etc/nginx/conf.d/default.conf"
+    depends_on: 
+      - user
