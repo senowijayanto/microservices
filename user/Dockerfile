@@ -1,18 +1,26 @@
-FROM golang:1.16
+# Builder
+FROM golang:1.16.3-alpine3.13 as builder
 
-RUN mkdir -p /app
+RUN apk update && apk upgrade && \
+    apk --update add git make
 
-COPY ./ /app
+WORKDIR /app
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-	git \
-	&& rm -rf /var/lib/apt/lists/* \
-	&& cd /app \
-	&& rm -rf ./docker \
-	&& rm -rf ./.git \
-	&& go mod download \
-  && go build main.go
+COPY . .
 
-EXPOSE 3000
+RUN make engine
 
-CMD ["/app/main"]
+# Distribution
+FROM alpine:latest
+
+RUN apk update && apk upgrade && \
+    apk --update --no-cache add tzdata && \
+    mkdir /app
+
+WORKDIR /app
+
+EXPOSE 9090
+
+COPY --from=builder /app/engine /app
+
+CMD /app/engine

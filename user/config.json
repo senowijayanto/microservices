@@ -1,0 +1,15 @@
+{
+  "debug": true,
+  "server": {
+    "address": "127.0.0.1:9090"
+  },
+  "context": {
+    "timeout": 2
+  },
+  "database": {
+    "maxidleconns": 10,
+    "maxopenconns": 100,
+    "connmaxidletime": 5,
+    "connmaxlifetime": 60
+  }
+}
