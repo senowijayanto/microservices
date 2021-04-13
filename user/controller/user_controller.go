@@ -117,7 +117,8 @@ func (uc *UserController) Update(c echo.Context) (err error) {
 			"err": err.Error(),
 		})
 	}
-	return c.JSON(http.StatusCreated, user)
+
+	return c.NoContent(http.StatusNoContent)
 }
 
 func (uc *UserController) Delete(c echo.Context) error  {

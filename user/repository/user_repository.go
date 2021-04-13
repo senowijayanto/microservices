@@ -86,7 +86,7 @@ func (ur *userRepository) Store(ctx context.Context, user *domain.User) (err err
 }
 
 func (ur *userRepository) Update(ctx context.Context, user *domain.User, id uint32) (err error)  {
-	query := `UPDATE user SET username=?, email=?, password=? WHERE id=?`
+	query := `UPDATE user SET password=? WHERE id=?`
 
 	stmt, err := ur.Conn.PrepareContext(ctx, query)
 	if err != nil {
@@ -98,7 +98,7 @@ func (ur *userRepository) Update(ctx context.Context, user *domain.User, id uint
 		return
 	}
 
-	res, err := stmt.ExecContext(ctx, user.Username, user.Email, hashing, id)
+	res, err := stmt.ExecContext(ctx, hashing, id)
 	if err != nil {
 		return
 	}
