@@ -49,6 +49,7 @@ func (ur *userRepository) Fetch(ctx context.Context) (users []domain.User, err e
 
 func (ur *userRepository) GetByID(ctx context.Context, id uint32) (user domain.User, err error)  {
 	query := `SELECT id, username, email, created_at, updated_at FROM user WHERE id=?`
+
 	stmt, err := ur.Conn.PrepareContext(ctx, query)
 	if err != nil {
 		return domain.User{}, err
@@ -56,12 +57,18 @@ func (ur *userRepository) GetByID(ctx context.Context, id uint32) (user domain.U
 	row := stmt.QueryRowContext(ctx, id)
 	user = domain.User{}
 
-	err = row.Scan(&user.ID, &user.Username, &user.Email, &user.CreatedAt, &user.UpdatedAt)
+	err = row.Scan(
+		&user.ID,
+		&user.Username,
+		&user.Email,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+		)
 	return
 }
 
 func (ur *userRepository) Store(ctx context.Context, user *domain.User) (err error)  {
-	query := `INSERT INTO user (username, email, password, created_at, updated_at) VALUES(?, ?, ?, ?, ?)`
+	query := `INSERT INTO user (username, email, password, created_at, updated_at) VALUES (?, ?, ?, ?, ?)`
 	stmt, err := ur.Conn.PrepareContext(ctx, query)
 	if err != nil {
 		return
@@ -86,7 +93,7 @@ func (ur *userRepository) Store(ctx context.Context, user *domain.User) (err err
 }
 
 func (ur *userRepository) Update(ctx context.Context, user *domain.User, id uint32) (err error)  {
-	query := `UPDATE user SET password=? WHERE id=?`
+	query := `UPDATE user SET username=?, email=?, password=?, updated_at=? WHERE id=?`
 
 	stmt, err := ur.Conn.PrepareContext(ctx, query)
 	if err != nil {
@@ -98,7 +105,7 @@ func (ur *userRepository) Update(ctx context.Context, user *domain.User, id uint
 		return
 	}
 
-	res, err := stmt.ExecContext(ctx, hashing, id)
+	res, err := stmt.ExecContext(ctx, user.Username, user.Email, hashing, time.Now(), id)
 	if err != nil {
 		return
 	}

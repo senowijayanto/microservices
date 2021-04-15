@@ -1,7 +1,7 @@
 {
   "debug": true,
   "server": {
-    "address": "127.0.0.1:9090"
+    "address": ":9090"
   },
   "context": {
     "timeout": 2

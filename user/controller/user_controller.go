@@ -82,7 +82,11 @@ func (uc *UserController) Store(c echo.Context) (err error) {
 			"err": err.Error(),
 		})
 	}
-	return c.JSON(http.StatusCreated, user)
+
+	return c.JSON(http.StatusCreated, echo.Map{
+		"username": user.Username,
+		"email": user.Email,
+	})
 }
 
 func (uc *UserController) Update(c echo.Context) (err error) {
