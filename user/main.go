@@ -2,12 +2,15 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
+	"log"
+	"net/url"
+	"time"
+
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/spf13/viper"
-	"log"
-	"time"
 
 	_userController "user/controller"
 	_userRepo "user/repository"
@@ -28,21 +31,29 @@ func init() {
 
 func main() {
 	// Setup database
-	db, err := sql.Open("sqlite3", "./users.db")
+	dbHost := viper.GetString(`database.host`)
+	dbPort := viper.GetString(`database.port`)
+	dbUser := viper.GetString(`database.user`)
+	dbPass := viper.GetString(`database.pass`)
+	dbName := viper.GetString(`database.name`)
+	fmt.Println(dbPass)
+	connection := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPass, dbHost, dbPort, dbName)
+	val := url.Values{}
+	val.Add("parseTime", "1")
+	val.Add("loc", "Asia/Jakarta")
+	dsn := fmt.Sprintf("%s?%s", connection, val.Encode())
+	dbConn, err := sql.Open(`mysql`, dsn)
+
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = db.Ping()
+	err = dbConn.Ping()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	db.SetMaxIdleConns(10)
-	db.SetMaxOpenConns(100)
-	db.SetConnMaxIdleTime(5 * time.Minute)
-	db.SetConnMaxLifetime(60 * time.Minute)
 	defer func() {
-		err := db.Close()
+		err := dbConn.Close()
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -61,11 +72,8 @@ func main() {
 		AllowMethods: []string{echo.GET, echo.HEAD, echo.PUT, echo.PATCH, echo.POST, echo.DELETE},
 	}))
 
-	//middleware := _userMiddleware.InitMiddleware()
-	//e.Use(middleware.CORS)
-
 	// Setup User Repository
-	userRepo := _userRepo.NewUserRepository(db)
+	userRepo := _userRepo.NewUserRepository(dbConn)
 
 	// Setup User Service
 	timeoutContext := time.Duration(viper.GetInt("context.timeout")) * time.Second

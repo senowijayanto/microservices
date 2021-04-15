@@ -8,10 +8,10 @@
   },
   "database": {
     "host": "localhost",
-    "port": "33061",
+    "port": "33062",
     "user": "root",
     "pass": "secret",
-    "name": "users",
+    "name": "products",
     "maxidleconns": 10,
     "maxopenconns": 100,
     "connmaxidletime": 5,

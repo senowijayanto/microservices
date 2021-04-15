@@ -1,26 +1,13 @@
-# Builder
-FROM golang:1.16.3-alpine3.13 as builder
+FROM golang:alpine
 
-RUN apk update && apk upgrade && \
-    apk --update add git make
+RUN apk update && apk add --no-cache git gcc musl-dev
 
 WORKDIR /app
 
 COPY . .
 
-RUN make engine
+RUN go mod tidy
 
-# Distribution
-FROM alpine:latest
+RUN go build -o binary
 
-RUN apk update && apk upgrade && \
-    apk --update --no-cache add tzdata && \
-    mkdir /app
-
-WORKDIR /app
-
-EXPOSE 9090
-
-COPY --from=builder /app/engine /app
-
-CMD /app/engine
+ENTRYPOINT ["/app/binary"]
