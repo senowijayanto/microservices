@@ -3,7 +3,7 @@ version: "3"
 services: 
   
   ### User Service ###
-  user-service:
+  user:
     build: "./user"
     container_name: user-service
     ports: 
@@ -22,7 +22,7 @@ services:
       MYSQL_ROOT_PASSWORD: secret
 
   ### Product Service ###
-  product-service:
+  product:
     build: "./product"
     ports:
       - "9092:9090"
@@ -35,6 +35,24 @@ services:
       - "33062:3306"
     volumes:
       - ./db/product-db:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+
+  ### Order Service ###
+  order:
+    build: "./order"
+    ports:
+      - "9093:9090"
+
+  order-db:
+    image: mariadb
+    container_name: order-db
+    restart: always
+    ports: 
+      - "33063:3306"
+    volumes:
+      - ./db/order-db:/var/lib/mysql
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: secret
