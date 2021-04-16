@@ -9,6 +9,11 @@ import (
 	"github.com/spf13/viper"
 	"log"
 	"net/url"
+	"time"
+
+	_productRepo "product/repository"
+	_productService "product/service"
+	_productHandler "product/handler"
 )
 
 func init() {
@@ -59,6 +64,16 @@ func main() {
 	// Setup middleware
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
+
+	// Setup Product Repository
+	productRepo := _productRepo.NewProductRepository(dbConn)
+
+	// Setup Product Service
+	timeoutContext := time.Duration(viper.GetInt("context.timeout")) * time.Second
+	productService := _productService.NewProductService(productRepo, timeoutContext)
+
+	// Setup Product Handler
+	_productHandler.NewProductHandler(e, productService)
 
 	// CORS
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{

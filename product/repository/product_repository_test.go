@@ -7,18 +7,21 @@ import (
 	"github.com/stretchr/testify/assert"
 	"log"
 	"product/domain"
+	"regexp"
 	"testing"
 	"time"
 )
 
-var product = &domain.Product{
-	ID:        1,
-	Name:      "Laptop Lenovo",
-	Price:     3000000,
-	Quantity:  10,
-	CreatedAt: time.Now(),
-	UpdatedAt: time.Now(),
-}
+var (
+	t = time.Now()
+	ts = t.Format("2006-01-02 15:04:05")
+	product = &domain.Product{
+		ID:        1,
+		Name:      "Laptop Lenovo",
+		Price:     3000000,
+		Quantity:  10,
+	}
+)
 
 func NewMock() (*sql.DB, sqlmock.Sqlmock) {
 	db, mock, err := sqlmock.New()
@@ -70,27 +73,51 @@ func TestProductRepository_GetByID(t *testing.T) {
 }
 
 func TestProductRepository_Store(t *testing.T) {
-	now := time.Now()
-	prod := &domain.Product{
-		ID:        1,
-		Name:      "Laptop Lenovo",
-		Price:     3000000,
-		Quantity:  10,
-		CreatedAt: now,
-		UpdatedAt: now,
-	}
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
 
-	query := "INSERT INTO product \\(name, price, quantity, created_at, updated_at\\) VALUES \\(\\?, \\?, \\?, \\?, \\?\\)"
+	query := regexp.QuoteMeta(`INSERT INTO product (name, price, quantity, created_at, updated_at) VALUES (?, ?, ?, ?, ?)`)
 	prep := mock.ExpectPrepare(query)
-	prep.ExpectExec().WithArgs(prod.Name, prod.Price, prod.Quantity, prod.CreatedAt, prod.UpdatedAt).WillReturnResult(sqlmock.NewResult(1, 1))
+	prep.ExpectExec().WithArgs(product.Name, product.Price, product.Quantity, ts, ts).WillReturnResult(sqlmock.NewResult(1, 1))
 
 	pr := NewProductRepository(db)
 
-	err = pr.Store(context.TODO(), prod)
+	err = pr.Store(context.TODO(), product)
 	assert.NoError(t, err)
-	assert.Equal(t, uint32(1), prod.ID)
+	assert.Equal(t, uint32(1), product.ID)
+}
+
+func TestProductRepository_Update(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+
+	query := regexp.QuoteMeta(`UPDATE product SET name=?, price=?, quantity=?, updated_at=? WHERE id=?`)
+	prep := mock.ExpectPrepare(query)
+	prep.ExpectExec().WithArgs(product.Name, product.Price, product.Quantity, ts, product.ID).WillReturnResult(sqlmock.NewResult(1, 1))
+
+	pr := NewProductRepository(db)
+
+	err = pr.Update(context.TODO(), product, product.ID)
+	assert.NoError(t, err)
+}
+
+func TestProductRepository_Delete(t *testing.T) {
+	db, mock := NewMock()
+	repo := NewProductRepository(db)
+	defer func() {
+		db.Close()
+	}()
+
+	query := regexp.QuoteMeta(`DELETE FROM product WHERE id=?`)
+
+	prep := mock.ExpectPrepare(query)
+	prep.ExpectExec().WithArgs(1).WillReturnResult(sqlmock.NewResult(1, 1))
+
+	num := uint32(1)
+	err := repo.Delete(context.TODO(), num)
+	assert.NoError(t, err)
 }

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -12,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestProductHandler_Fetch(t *testing.T) {
@@ -74,5 +76,111 @@ func TestProductHandler_GetByID(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, http.StatusOK, rec.Code)
+	mockProdService.AssertExpectations(t)
+}
+
+func TestProductHandler_Store(t *testing.T) {
+	mockProduct := domain.Product{
+		ID:        1,
+		Name:      "Laptop Lenovo Thinkpad",
+		Price:     7000000,
+		Quantity:  10,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	tempMockProduct := mockProduct
+	tempMockProduct.ID = 0
+	mockProdService := new(mocks.ProductService)
+
+	jm, err := json.Marshal(tempMockProduct)
+	assert.NoError(t, err)
+
+	mockProdService.On("Store", mock.Anything, mock.AnythingOfType("*domain.Product")).Return(nil)
+
+	e := echo.New()
+	req, err := http.NewRequest(echo.POST, "/api/v1/products", strings.NewReader(string(jm)))
+	assert.NoError(t, err)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/api/v1/products")
+
+	handler := ProductHandler{
+		ProdService: mockProdService,
+	}
+	err = handler.Store(c)
+	require.NoError(t, err)
+
+	assert.Equal(t, http.StatusCreated, rec.Code)
+	mockProdService.AssertExpectations(t)
+}
+
+func TestProductHandler_Update(t *testing.T) {
+	mockProduct := domain.Product{
+		ID:        1,
+		Name:      "Laptop Lenovo Thinkpad",
+		Price:     7000000,
+		Quantity:  10,
+		CreatedAt: time.Time{},
+		UpdatedAt: time.Time{},
+	}
+	tempMockProduct := mockProduct
+	tempMockProduct.ID = 0
+	mockProdService := new(mocks.ProductService)
+
+	jm, err := json.Marshal(tempMockProduct)
+	assert.NoError(t, err)
+
+	num := int(mockProduct.ID)
+
+	mockProdService.On("Update", mock.Anything, mock.AnythingOfType("*domain.Product"), uint32(num)).Return(nil)
+
+	e := echo.New()
+	req, err := http.NewRequest(echo.PUT, "/api/v1/products/"+strconv.Itoa(num), strings.NewReader(string(jm)))
+	assert.NoError(t, err)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/api/v1/products/:id")
+	c.SetParamNames("id")
+	c.SetParamValues(strconv.Itoa(num))
+
+	handler := ProductHandler{
+		ProdService: mockProdService,
+	}
+	err = handler.Update(c)
+	require.NoError(t, err)
+
+	assert.Equal(t, http.StatusNoContent, rec.Code)
+	mockProdService.AssertExpectations(t)
+}
+
+func TestProductHandler_Delete(t *testing.T) {
+	var mockProduct domain.Product
+	mockProdService := new(mocks.ProductService)
+	num := int(mockProduct.ID)
+
+	mockProdService.On("Delete", mock.Anything, uint32(num)).Return(nil)
+
+	e := echo.New()
+	req, err := http.NewRequest(echo.DELETE, "/api/v1/products/"+strconv.Itoa(num), strings.NewReader(""))
+	assert.NoError(t, err)
+
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/api/v1/products/:id")
+	c.SetParamNames("id")
+	c.SetParamValues(strconv.Itoa(num))
+
+	handler := ProductHandler{
+		ProdService: mockProdService,
+	}
+	err = handler.Delete(c)
+	require.NoError(t, err)
+
+	assert.Equal(t, http.StatusNoContent, rec.Code)
 	mockProdService.AssertExpectations(t)
 }

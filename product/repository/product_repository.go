@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 	"product/domain"
 	"time"
@@ -74,7 +75,9 @@ func (pr *productRepository) Store(ctx context.Context, product *domain.Product)
 		return
 	}
 
-	res, err := stmt.ExecContext(ctx, product.Name, product.Price, product.Quantity, time.Now(), time.Now())
+	t := time.Now()
+	ts := t.Format("2006-01-02 15:04:05")
+	res, err := stmt.ExecContext(ctx, product.Name, product.Price, product.Quantity, ts, ts)
 	if err != nil {
 		return
 	}
@@ -84,5 +87,59 @@ func (pr *productRepository) Store(ctx context.Context, product *domain.Product)
 		return
 	}
 	product.ID = uint32(lastID)
+	return
+}
+
+func (pr *productRepository) Update(ctx context.Context, product *domain.Product, id uint32) (err error)  {
+	query := `UPDATE product SET name=?, price=?, quantity=?, updated_at=? WHERE id=?`
+
+	stmt, err := pr.Conn.PrepareContext(ctx, query)
+	if err != nil {
+		return
+	}
+
+	t := time.Now()
+	ts := t.Format("2006-01-02 15:04:05")
+	result, err := stmt.ExecContext(ctx, product.Name, product.Price, product.Quantity, ts, id)
+	if err != nil {
+		return
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return
+	}
+
+	if rowsAffected != 1 {
+		err = fmt.Errorf("Total Affected: %d", rowsAffected)
+		return
+	}
+
+	return
+}
+
+func (pr *productRepository) Delete(ctx context.Context, id uint32) (err error)  {
+	query := `DELETE FROM product WHERE id=?`
+
+	stmt, err := pr.Conn.PrepareContext(ctx, query)
+	if err != nil {
+		return
+	}
+
+	result, err := stmt.ExecContext(ctx, id)
+	if err != nil {
+		return
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return
+	}
+
+	if rowsAffected != 1 {
+		err = fmt.Errorf("Total Affected: %d", rowsAffected)
+		return
+	}
+
 	return
 }

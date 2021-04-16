@@ -66,3 +66,49 @@ func TestProductService_GetByID(t *testing.T) {
 		mockProductRepo.AssertExpectations(t)
 	})
 }
+
+func TestProductService_Store(t *testing.T) {
+	mockProductRepo := new(mocks.ProductRepository)
+	mockProduct := domain.Product{Name: "Laptop Lenovo", Price: 3000000}
+	tempMockProduct := mockProduct
+	tempMockProduct.ID = 0
+
+	t.Run("success", func(t *testing.T) {
+		mockProductRepo.On("Store", mock.Anything, mock.AnythingOfType("*domain.Product")).Return(nil).Once()
+
+		p := NewProductService(mockProductRepo, time.Second*2)
+		err := p.Store(context.TODO(), &tempMockProduct)
+
+		assert.NoError(t, err)
+		assert.Equal(t, mockProduct.Name, tempMockProduct.Name)
+		mockProductRepo.AssertExpectations(t)
+	})
+}
+
+func TestProductService_Update(t *testing.T) {
+	mockProductRepo := new(mocks.ProductRepository)
+	mockProduct := domain.Product{ID: 1, Name: "Laptop Lenovo", Price: 3000000}
+
+	t.Run("success", func(t *testing.T) {
+		mockProductRepo.On("Update", mock.Anything, &mockProduct).Once().Return(nil)
+		p := NewProductService(mockProductRepo, time.Second*2)
+
+		err := p.Update(context.TODO(), &mockProduct, mockProduct.ID)
+		assert.NoError(t, err)
+		mockProductRepo.AssertExpectations(t)
+	})
+}
+
+func TestProductService_Delete(t *testing.T) {
+	mockProductRepo := new(mocks.ProductRepository)
+	mockProduct := domain.Product{ID: 1, Name: "Laptop Lenovo", Price: 3000000}
+
+	t.Run("success", func(t *testing.T) {
+		mockProductRepo.On("Delete", mock.Anything, mock.AnythingOfType("uint32")).Return(nil).Once()
+		p := NewProductService(mockProductRepo, time.Second*2)
+
+		err := p.Delete(context.TODO(), mockProduct.ID)
+		assert.NoError(t, err)
+		mockProductRepo.AssertExpectations(t)
+	})
+}
