@@ -30,10 +30,10 @@ Provides several API for order product.
 | Method | Path                 | Description                  |
 |--------|----------------------|------------------------------|
 | POST   | /api/v1/orders       | Create new order             |
-| GET    | /api/v1/products     | Get all order informations   |
-| GET    | /api/v1/products/:id | Get order with ID            |
-| PUT    | /api/v1/products/:id | Edit order with ID           |
-| DELETE | /api/v1/products/:id | Delete order with ID         |
+| GET    | /api/v1/orders       | Get all order informations   |
+| GET    | /api/v1/orders/:id   | Get order with ID            |
+| PUT    | /api/v1/orders/:id   | Edit order with ID           |
+| DELETE | /api/v1/orders/:id   | Delete order with ID         |
 
 ## Install
 
