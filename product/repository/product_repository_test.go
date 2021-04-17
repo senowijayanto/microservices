@@ -1,4 +1,4 @@
-package repository
+package repository_test
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"log"
 	"product/domain"
+	"product/repository"
 	"regexp"
 	"testing"
 	"time"
@@ -34,7 +35,7 @@ func NewMock() (*sql.DB, sqlmock.Sqlmock) {
 
 func TestProductRepository_Fetch(t *testing.T) {
 	db, mock := NewMock()
-	repo := NewProductRepository(db)
+	repo := repository.NewProductRepository(db)
 	defer func() {
 		db.Close()
 	}()
@@ -54,7 +55,7 @@ func TestProductRepository_Fetch(t *testing.T) {
 
 func TestProductRepository_GetByID(t *testing.T) {
 	db, mock := NewMock()
-	repo := NewProductRepository(db)
+	repo := repository.NewProductRepository(db)
 	defer func() {
 		db.Close()
 	}()
@@ -82,7 +83,7 @@ func TestProductRepository_Store(t *testing.T) {
 	prep := mock.ExpectPrepare(query)
 	prep.ExpectExec().WithArgs(product.Name, product.Price, product.Quantity, ts, ts).WillReturnResult(sqlmock.NewResult(1, 1))
 
-	pr := NewProductRepository(db)
+	pr := repository.NewProductRepository(db)
 
 	err = pr.Store(context.TODO(), product)
 	assert.NoError(t, err)
@@ -99,7 +100,7 @@ func TestProductRepository_Update(t *testing.T) {
 	prep := mock.ExpectPrepare(query)
 	prep.ExpectExec().WithArgs(product.Name, product.Price, product.Quantity, ts, product.ID).WillReturnResult(sqlmock.NewResult(1, 1))
 
-	pr := NewProductRepository(db)
+	pr := repository.NewProductRepository(db)
 
 	err = pr.Update(context.TODO(), product, product.ID)
 	assert.NoError(t, err)
@@ -107,7 +108,7 @@ func TestProductRepository_Update(t *testing.T) {
 
 func TestProductRepository_Delete(t *testing.T) {
 	db, mock := NewMock()
-	repo := NewProductRepository(db)
+	repo := repository.NewProductRepository(db)
 	defer func() {
 		db.Close()
 	}()

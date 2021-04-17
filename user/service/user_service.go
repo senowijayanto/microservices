@@ -7,7 +7,7 @@ import (
 )
 
 type userService struct {
-	userRepo domain.UserRepository
+	userRepo       domain.UserRepository
 	contextTimeout time.Duration
 }
 

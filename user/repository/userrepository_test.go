@@ -1,24 +1,25 @@
-package repository
+package repository_test
 
 import (
 	"context"
 	"database/sql"
-	sqlmock "github.com/DATA-DOG/go-sqlmock"
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
 	"log"
+	"regexp"
 	"testing"
 	"time"
 	"user/domain"
+	"user/repository"
 )
-
-var user = &domain.User{
-	ID:        1,
-	Username:  "senowijayanto",
-	Email:     "senowijayanto@gmail.com",
-	Password:  "k03nc1k03",
-	CreatedAt: time.Now(),
-	UpdatedAt: time.Now(),
-}
+var (
+	t    = time.Now()
+	ts   = t.Format("2006-01-02 15:04:05")
+	user = &domain.User{
+		ID:    1,
+		Email: "senowijayanto@gmail.com",
+	}
+)
 
 func NewMock() (*sql.DB, sqlmock.Sqlmock) {
 	db, mock, err := sqlmock.New()
@@ -31,15 +32,15 @@ func NewMock() (*sql.DB, sqlmock.Sqlmock) {
 
 func TestUserRepository_Fetch(t *testing.T) {
 	db, mock := NewMock()
-	repo := NewUserRepository(db)
+	repo := repository.NewUserRepository(db)
 	defer func() {
 		db.Close()
 	}()
 
-	query := "SELECT id, username, email, created_at, updated_at FROM user"
+	query := "SELECT id, email, created_at, updated_at FROM user"
 
-	rows := sqlmock.NewRows([]string{"id", "username", "email", "created_at", "updated_at"}).
-		AddRow(user.ID, user.Username, user.Email, user.CreatedAt, user.UpdatedAt)
+	rows := sqlmock.NewRows([]string{"id", "email", "created_at", "updated_at"}).
+		AddRow(user.ID, user.Email, user.CreatedAt, user.UpdatedAt)
 
 	mock.ExpectQuery(query).WillReturnRows(rows)
 
@@ -51,15 +52,15 @@ func TestUserRepository_Fetch(t *testing.T) {
 
 func TestUserRepository_GetByID(t *testing.T) {
 	db, mock := NewMock()
-	repo := NewUserRepository(db)
+	repo := repository.NewUserRepository(db)
 	defer func() {
 		db.Close()
 	}()
 
-	query := "SELECT id, username, email, created_at, updated_at FROM user WHERE id=\\?"
+	query := "SELECT id, email, created_at, updated_at FROM user WHERE id=\\?"
 
-	rows := sqlmock.NewRows([]string{"id", "username", "email", "created_at", "updated_at"}).
-		AddRow(user.ID, user.Username, user.Email, user.CreatedAt, user.UpdatedAt)
+	rows := sqlmock.NewRows([]string{"id", "email", "created_at", "updated_at"}).
+		AddRow(user.ID, user.Email, user.CreatedAt, user.UpdatedAt)
 
 	prep := mock.ExpectPrepare(query)
 	prep.ExpectQuery().WithArgs(user.ID).WillReturnRows(rows)
@@ -72,53 +73,41 @@ func TestUserRepository_GetByID(t *testing.T) {
 
 func TestUserRepository_Store(t *testing.T) {
 	db, mock := NewMock()
-	repo := NewUserRepository(db)
+	repo := repository.NewUserRepository(db)
 	defer func() {
 		db.Close()
 	}()
 
-	hashing, err := HashPassword(user.Password)
-	if err != nil {
-		return
-	}
-
-	user.Password = hashing
-
-	query := "INSERT INTO user \\(username, email, password, created_at, updated_at\\) VALUES \\(\\?, \\?, \\?, \\?, \\?\\)"
+	query := regexp.QuoteMeta("INSERT INTO user (email, created_at, updated_at) VALUES (?, ?, ?)")
 	prep := mock.ExpectPrepare(query)
 	prep.ExpectExec().
-		WithArgs(user.Username, user.Email, user.Password, user.CreatedAt, user.UpdatedAt).
+		WithArgs(user.Email, ts, ts).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
-	err = repo.Store(context.TODO(), user)
+	err := repo.Store(context.TODO(), user)
 	assert.NoError(t, err)
 	assert.NotNil(t, user)
 }
 
 func TestUserRepository_Update(t *testing.T) {
 	db, mock := NewMock()
-	repo := NewUserRepository(db)
+	repo := repository.NewUserRepository(db)
 	defer func() {
 		db.Close()
 	}()
 
-	hashing, err := HashPassword(user.Password)
-	if err != nil {
-		return
-	}
-
-	query := "UPDATE user SET username=\\?, email=\\?, password=\\?, updated_at=\\? WHERE id=\\?"
+	query := regexp.QuoteMeta("UPDATE user SET email=?, updated_at=? WHERE id=?")
 
 	prep := mock.ExpectPrepare(query)
-	prep.ExpectExec().WithArgs(user.Username, user.Email, hashing, time.Now(), user.ID).WillReturnResult(sqlmock.NewResult(1,1))
+	prep.ExpectExec().WithArgs(user.Email, ts, user.ID).WillReturnResult(sqlmock.NewResult(1,1))
 
-	err = repo.Update(context.TODO(), user, uint32(1))
+	err := repo.Update(context.TODO(), user, uint32(1))
 	assert.NoError(t, err)
 }
 
 func TestUserRepository_Delete(t *testing.T) {
 	db, mock := NewMock()
-	repo := NewUserRepository(db)
+	repo := repository.NewUserRepository(db)
 	defer func() {
 		db.Close()
 	}()

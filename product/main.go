@@ -13,7 +13,7 @@ import (
 
 	_productRepo "product/repository"
 	_productService "product/service"
-	_productHandler "product/handler"
+	_productController "product/controller"
 )
 
 func init() {
@@ -73,7 +73,7 @@ func main() {
 	productService := _productService.NewProductService(productRepo, timeoutContext)
 
 	// Setup Product Handler
-	_productHandler.NewProductHandler(e, productService)
+	_productController.NewProductController(e, productService)
 
 	// CORS
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{

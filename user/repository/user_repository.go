@@ -4,10 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"golang.org/x/crypto/bcrypt"
 	"log"
 	"time"
 	"user/domain"
+)
+
+var (
+	t = time.Now()
+	ts = t.Format("2006-01-02 15:04:05")
 )
 
 type userRepository struct {
@@ -20,7 +24,7 @@ func NewUserRepository(Conn *sql.DB) domain.UserRepository {
 }
 
 func (ur *userRepository) Fetch(ctx context.Context) (users []domain.User, err error)  {
-	query := `SELECT id, username, email, created_at, updated_at FROM user`
+	query := `SELECT id, email, created_at, updated_at FROM user`
 	rows, err := ur.Conn.QueryContext(ctx, query)
 	if err != nil {
 		log.Fatal(err)
@@ -36,7 +40,7 @@ func (ur *userRepository) Fetch(ctx context.Context) (users []domain.User, err e
 	users = make([]domain.User, 0)
 	for rows.Next() {
 		t := domain.User{}
-		err = rows.Scan(&t.ID, &t.Username, &t.Email, &t.CreatedAt, &t.UpdatedAt)
+		err = rows.Scan(&t.ID, &t.Email, &t.CreatedAt, &t.UpdatedAt)
 		if err != nil {
 			log.Fatal(err)
 			return nil, err
@@ -48,7 +52,7 @@ func (ur *userRepository) Fetch(ctx context.Context) (users []domain.User, err e
 }
 
 func (ur *userRepository) GetByID(ctx context.Context, id uint32) (user domain.User, err error)  {
-	query := `SELECT id, username, email, created_at, updated_at FROM user WHERE id=?`
+	query := `SELECT id, email, created_at, updated_at FROM user WHERE id=?`
 
 	stmt, err := ur.Conn.PrepareContext(ctx, query)
 	if err != nil {
@@ -59,7 +63,6 @@ func (ur *userRepository) GetByID(ctx context.Context, id uint32) (user domain.U
 
 	err = row.Scan(
 		&user.ID,
-		&user.Username,
 		&user.Email,
 		&user.CreatedAt,
 		&user.UpdatedAt,
@@ -68,18 +71,13 @@ func (ur *userRepository) GetByID(ctx context.Context, id uint32) (user domain.U
 }
 
 func (ur *userRepository) Store(ctx context.Context, user *domain.User) (err error)  {
-	query := `INSERT INTO user (username, email, password, created_at, updated_at) VALUES (?, ?, ?, ?, ?)`
+	query := `INSERT INTO user (email, created_at, updated_at) VALUES (?, ?, ?)`
 	stmt, err := ur.Conn.PrepareContext(ctx, query)
 	if err != nil {
 		return
 	}
 
-	hashing, err := HashPassword(user.Password)
-	if err != nil {
-		return
-	}
-
-	res, err := stmt.ExecContext(ctx, user.Username, user.Email, hashing, time.Now(), time.Now())
+	res, err := stmt.ExecContext(ctx, user.Email, ts, ts)
 	if err != nil {
 		return
 	}
@@ -93,19 +91,15 @@ func (ur *userRepository) Store(ctx context.Context, user *domain.User) (err err
 }
 
 func (ur *userRepository) Update(ctx context.Context, user *domain.User, id uint32) (err error)  {
-	query := `UPDATE user SET username=?, email=?, password=?, updated_at=? WHERE id=?`
+	query := `UPDATE user SET email=?, updated_at=? WHERE id=?`
 
 	stmt, err := ur.Conn.PrepareContext(ctx, query)
 	if err != nil {
 		return
 	}
 
-	hashing, err := HashPassword(user.Password)
-	if err != nil {
-		return
-	}
 
-	res, err := stmt.ExecContext(ctx, user.Username, user.Email, hashing, time.Now(), id)
+	res, err := stmt.ExecContext(ctx, user.Email, ts, id)
 	if err != nil {
 		return
 	}
@@ -147,9 +141,4 @@ func (ur *userRepository) Delete(ctx context.Context, id uint32) (err error)  {
 	}
 
 	return
-}
-
-func HashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
-	return string(bytes), err
 }

@@ -1,7 +1,6 @@
 package controller
 
 import (
-	validator "github.com/go-playground/validator"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"strconv"
@@ -18,11 +17,12 @@ func NewUserController(e *echo.Echo, us domain.UserService) {
 	controller := &UserController{
 		UserService: us,
 	}
-	e.GET("/api/v1/users", controller.Fetch)
-	e.GET("/api/v1/users/:id", controller.GetByID)
-	e.POST("/api/v1/users", controller.Store)
-	e.PUT("/api/v1/users/:id", controller.Update)
-	e.DELETE("/api/v1/users/:id", controller.Delete)
+	group := e.Group("/api/v1")
+	group.GET("/users", controller.Fetch)
+	group.GET("/users/:id", controller.GetByID)
+	group.POST("/users", controller.Store)
+	group.PUT("/users/:id", controller.Update)
+	group.DELETE("/users/:id", controller.Delete)
 }
 
 // Fetch method will fetch all users data
@@ -68,13 +68,6 @@ func (uc *UserController) Store(c echo.Context) (err error) {
 		})
 	}
 
-	var ok bool
-	if ok, err = isRequestValid(&user); !ok {
-		return c.JSON(http.StatusBadRequest, echo.Map{
-			"err": err,
-		})
-	}
-
 	ctx := c.Request().Context()
 	err = uc.UserService.Store(ctx, &user)
 	if err != nil {
@@ -84,7 +77,6 @@ func (uc *UserController) Store(c echo.Context) (err error) {
 	}
 
 	return c.JSON(http.StatusCreated, echo.Map{
-		"username": user.Username,
 		"email": user.Email,
 	})
 }
@@ -95,13 +87,6 @@ func (uc *UserController) Update(c echo.Context) (err error) {
 	if err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, echo.Map{
 			"err": err.Error(),
-		})
-	}
-
-	var ok bool
-	if ok, err = isRequestValid(&user); !ok {
-		return c.JSON(http.StatusBadRequest, echo.Map{
-			"err": err,
 		})
 	}
 
@@ -144,13 +129,4 @@ func (uc *UserController) Delete(c echo.Context) error  {
 	}
 
 	return c.NoContent(http.StatusNoContent)
-}
-
-func isRequestValid(user *domain.User) (bool, error) {
-	validate := validator.New()
-	err := validate.Struct(user)
-	if err != nil {
-		return false, err
-	}
-	return true, nil
 }

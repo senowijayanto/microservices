@@ -1,4 +1,4 @@
-# Microservices Test
+# Microservices
 This project is a simple skeleton code for microservice architecture pattern using Golang and Docker.
 
 ## Services

@@ -1,4 +1,4 @@
-package service
+package service_test
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"product/domain"
 	"product/domain/mocks"
+	"product/service"
 	"testing"
 	"time"
 )
@@ -23,7 +24,7 @@ func TestProductService_Fetch(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		mockProductRepo.On("Fetch", mock.Anything).Return(mockListProduct, nil).Once()
-		p := NewProductService(mockProductRepo, time.Second*2)
+		p := service.NewProductService(mockProductRepo, time.Second*2)
 		list, err := p.Fetch(context.TODO())
 		assert.NoError(t, err)
 		assert.Len(t, list, len(mockListProduct))
@@ -33,7 +34,7 @@ func TestProductService_Fetch(t *testing.T) {
 
 	t.Run("error", func(t *testing.T) {
 		mockProductRepo.On("Fetch", mock.Anything).Return(nil, errors.New("unexpected error")).Once()
-		p := NewProductService(mockProductRepo, time.Second*2)
+		p := service.NewProductService(mockProductRepo, time.Second*2)
 		list, err := p.Fetch(context.TODO())
 
 		assert.Error(t, err)
@@ -48,7 +49,7 @@ func TestProductService_GetByID(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		mockProductRepo.On("GetByID", mock.Anything, mock.AnythingOfType("uint32")).Return(mockProduct, nil).Once()
-		p := NewProductService(mockProductRepo, time.Second*2)
+		p := service.NewProductService(mockProductRepo, time.Second*2)
 
 		res, err := p.GetByID(context.TODO(), mockProduct.ID)
 		assert.NoError(t, err)
@@ -58,7 +59,7 @@ func TestProductService_GetByID(t *testing.T) {
 
 	t.Run("error", func(t *testing.T) {
 		mockProductRepo.On("GetByID", mock.Anything, mock.AnythingOfType("uint32")).Return(domain.Product{}, errors.New("unexpected error")).Once()
-		p := NewProductService(mockProductRepo, time.Second*2)
+		p := service.NewProductService(mockProductRepo, time.Second*2)
 
 		res, err := p.GetByID(context.TODO(), mockProduct.ID)
 		assert.Error(t, err)
@@ -76,7 +77,7 @@ func TestProductService_Store(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		mockProductRepo.On("Store", mock.Anything, mock.AnythingOfType("*domain.Product")).Return(nil).Once()
 
-		p := NewProductService(mockProductRepo, time.Second*2)
+		p := service.NewProductService(mockProductRepo, time.Second*2)
 		err := p.Store(context.TODO(), &tempMockProduct)
 
 		assert.NoError(t, err)
@@ -91,7 +92,7 @@ func TestProductService_Update(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		mockProductRepo.On("Update", mock.Anything, &mockProduct).Once().Return(nil)
-		p := NewProductService(mockProductRepo, time.Second*2)
+		p := service.NewProductService(mockProductRepo, time.Second*2)
 
 		err := p.Update(context.TODO(), &mockProduct, mockProduct.ID)
 		assert.NoError(t, err)
@@ -105,7 +106,7 @@ func TestProductService_Delete(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		mockProductRepo.On("Delete", mock.Anything, mock.AnythingOfType("uint32")).Return(nil).Once()
-		p := NewProductService(mockProductRepo, time.Second*2)
+		p := service.NewProductService(mockProductRepo, time.Second*2)
 
 		err := p.Delete(context.TODO(), mockProduct.ID)
 		assert.NoError(t, err)

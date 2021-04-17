@@ -11,7 +11,6 @@ require (
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
-	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a
 	golang.org/x/sys v0.0.0-20201210223839-7e3030f88018 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 )

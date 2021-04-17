@@ -67,4 +67,6 @@ services:
     volumes: 
       - "./default.conf:/etc/nginx/conf.d/default.conf"
     depends_on: 
-      - user-service
+      - user
+      - product
+      - order

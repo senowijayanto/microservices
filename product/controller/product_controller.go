@@ -1,4 +1,4 @@
-package handler
+package controller
 
 import (
 	"github.com/labstack/echo/v4"
@@ -7,22 +7,23 @@ import (
 	"strconv"
 )
 
-type ProductHandler struct {
+type ProductController struct {
 	ProdService domain.ProductService
 }
 
-func NewProductHandler(e *echo.Echo, ps domain.ProductService)  {
-	handler := &ProductHandler{
+func NewProductController(e *echo.Echo, ps domain.ProductService)  {
+	controller := &ProductController{
 		ProdService: ps,
 	}
-	e.GET("/api/v1/products", handler.Fetch)
-	e.GET("/api/v1/products/:id", handler.GetByID)
-	e.POST("/api/v1/products", handler.Store)
-	e.PUT("/api/v1/products/:id", handler.Update)
-	e.DELETE("/api/v1/products/:id", handler.Delete)
+	group := e.Group("/api/v1")
+	group.GET("/products", controller.Fetch)
+	group.GET("/products/:id", controller.GetByID)
+	group.POST("/products", controller.Store)
+	group.PUT("/products/:id", controller.Update)
+	group.DELETE("/products/:id", controller.Delete)
 }
 
-func (ph *ProductHandler) Fetch(c echo.Context) error  {
+func (ph *ProductController) Fetch(c echo.Context) error  {
 	ctx := c.Request().Context()
 
 	list, err := ph.ProdService.Fetch(ctx)
@@ -35,7 +36,7 @@ func (ph *ProductHandler) Fetch(c echo.Context) error  {
 	return c.JSON(http.StatusOK, list)
 }
 
-func (ph *ProductHandler) GetByID(c echo.Context) error  {
+func (ph *ProductController) GetByID(c echo.Context) error  {
 	paramID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		return c.JSON(http.StatusNotFound, echo.Map{
@@ -55,7 +56,7 @@ func (ph *ProductHandler) GetByID(c echo.Context) error  {
 	return c.JSON(http.StatusOK, product)
 }
 
-func (ph *ProductHandler) Store(c echo.Context) (err error) {
+func (ph *ProductController) Store(c echo.Context) (err error) {
 	var product domain.Product
 	err = c.Bind(&product)
 	if err != nil {
@@ -77,7 +78,7 @@ func (ph *ProductHandler) Store(c echo.Context) (err error) {
 	})
 }
 
-func (ph *ProductHandler) Update(c echo.Context) error {
+func (ph *ProductController) Update(c echo.Context) error {
 	var product domain.Product
 	err := c.Bind(&product)
 	if err != nil {
@@ -106,7 +107,7 @@ func (ph *ProductHandler) Update(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func (ph *ProductHandler) Delete(c echo.Context) error {
+func (ph *ProductController) Delete(c echo.Context) error {
 	paramID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, echo.Map{

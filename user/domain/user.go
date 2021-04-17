@@ -7,9 +7,7 @@ import (
 
 type User struct {
 	ID        uint32    `json:"id"`
-	Username  string    `json:"username" validate:"required"`
 	Email     string    `json:"email" validate:"required"`
-	Password  string    `json:"password" validate:"required"`
 	CreatedAt time.Time `json:"-"`
 	UpdatedAt time.Time `json:"-"`
 }

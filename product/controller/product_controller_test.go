@@ -1,22 +1,24 @@
-package handler
+package controller_test
 
 import (
 	"encoding/json"
-	"github.com/labstack/echo/v4"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
+	"product/controller"
 	"product/domain"
 	"product/domain/mocks"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/labstack/echo/v4"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
-func TestProductHandler_Fetch(t *testing.T) {
+func TestProductController_Fetch(t *testing.T) {
 	var mockProduct domain.Product
 	mockProdService := new(mocks.ProductService)
 	mockListProduct := make([]domain.Product, 0)
@@ -25,19 +27,19 @@ func TestProductHandler_Fetch(t *testing.T) {
 	mockProdService.On("Fetch", mock.Anything).Return(mockListProduct, nil)
 
 	e := echo.New()
-	req, err := http.NewRequest(echo.GET, "/api/v1/users", strings.NewReader(""))
+	req, err := http.NewRequest(echo.GET, "/api/v1/products", strings.NewReader(""))
 	assert.NoError(t, err)
 
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	handler := ProductHandler{ProdService: mockProdService}
+	handler := controller.ProductController{ProdService: mockProdService}
 	err = handler.Fetch(c)
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
 	mockProdService.AssertExpectations(t)
 }
 
-func TestProductHandler_Fetch_Error(t *testing.T) {
+func TestProductController_Fetch_Error(t *testing.T) {
 	mockProdService := new(mocks.ProductService)
 	mockProdService.On("Fetch", mock.Anything).Return(nil, nil)
 
@@ -47,7 +49,7 @@ func TestProductHandler_Fetch_Error(t *testing.T) {
 
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	handler := ProductHandler{ProdService: mockProdService}
+	handler := controller.ProductController{ProdService: mockProdService}
 	err = handler.Fetch(c)
 	require.NoError(t, err)
 
@@ -55,7 +57,7 @@ func TestProductHandler_Fetch_Error(t *testing.T) {
 	mockProdService.AssertExpectations(t)
 }
 
-func TestProductHandler_GetByID(t *testing.T) {
+func TestProductController_GetByID(t *testing.T) {
 	var mockProduct domain.Product
 
 	mockProdService := new(mocks.ProductService)
@@ -71,7 +73,7 @@ func TestProductHandler_GetByID(t *testing.T) {
 	c.SetPath("api/v1/products/:id")
 	c.SetParamNames("id")
 	c.SetParamValues(strconv.Itoa(num))
-	handler := ProductHandler{ProdService: mockProdService}
+	handler := controller.ProductController{ProdService: mockProdService}
 	err = handler.GetByID(c)
 	require.NoError(t, err)
 
@@ -79,7 +81,7 @@ func TestProductHandler_GetByID(t *testing.T) {
 	mockProdService.AssertExpectations(t)
 }
 
-func TestProductHandler_Store(t *testing.T) {
+func TestProductController_Store(t *testing.T) {
 	mockProduct := domain.Product{
 		ID:        1,
 		Name:      "Laptop Lenovo Thinkpad",
@@ -107,9 +109,7 @@ func TestProductHandler_Store(t *testing.T) {
 	c := e.NewContext(req, rec)
 	c.SetPath("/api/v1/products")
 
-	handler := ProductHandler{
-		ProdService: mockProdService,
-	}
+	handler := controller.ProductController{ProdService: mockProdService}
 	err = handler.Store(c)
 	require.NoError(t, err)
 
@@ -148,9 +148,7 @@ func TestProductHandler_Update(t *testing.T) {
 	c.SetParamNames("id")
 	c.SetParamValues(strconv.Itoa(num))
 
-	handler := ProductHandler{
-		ProdService: mockProdService,
-	}
+	handler := controller.ProductController{ProdService: mockProdService}
 	err = handler.Update(c)
 	require.NoError(t, err)
 
@@ -175,9 +173,7 @@ func TestProductHandler_Delete(t *testing.T) {
 	c.SetParamNames("id")
 	c.SetParamValues(strconv.Itoa(num))
 
-	handler := ProductHandler{
-		ProdService: mockProdService,
-	}
+	handler := controller.ProductController{ProdService: mockProdService}
 	err = handler.Delete(c)
 	require.NoError(t, err)
 
