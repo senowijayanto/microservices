@@ -9,9 +9,14 @@ type Product struct {
 	ID        uint32 `json:"id"`
 	Name      string `json:"name"`
 	Price     int    `json:"price"`
-	Quantity  int    `json:"quantity"`
+	Stock     int    `json:"stock"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
+}
+
+type ProductOrder struct {
+	ID  uint32 `json:"id"`
+	Qty int    `json:"qty"`
 }
 
 type ProductRepository interface {
@@ -20,6 +25,7 @@ type ProductRepository interface {
 	Store(ctx context.Context, product *Product) error
 	Update(ctx context.Context, product *Product, id uint32) error
 	Delete(ctx context.Context, id uint32) error
+	UpdateStock(ctx context.Context, product *Product, id uint32) error
 }
 
 type ProductService interface {
@@ -28,4 +34,5 @@ type ProductService interface {
 	Store(context.Context, *Product) error
 	Update(ctx context.Context, product *Product, id uint32) error
 	Delete(ctx context.Context, id uint32) error
+	UpdateStock(ctx context.Context, product *Product, id uint32) error
 }

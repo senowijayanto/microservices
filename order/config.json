@@ -1,0 +1,23 @@
+{
+  "debug": true,
+  "server": {
+    "address": ":9090"
+  },
+  "context": {
+    "timeout": 2
+  },
+  "database": {
+    "host": "localhost",
+    "port": "33063",
+    "user": "root",
+    "pass": "secret",
+    "name": "orders",
+    "maxidleconns": 10,
+    "maxopenconns": 100,
+    "connmaxidletime": 5,
+    "connmaxlifetime": 60
+  },
+  "product": {
+    "url": "http://localhost:9090/api/v1/products/order/"
+  }
+}

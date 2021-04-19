@@ -64,3 +64,11 @@ func (ps *productService) Delete(c context.Context, id uint32) (err error)  {
 	err = ps.productRepo.Delete(ctx, id)
 	return
 }
+
+func (ps productService) UpdateStock(c context.Context, product *domain.Product, id uint32) (err error)  {
+	ctx, cancel := context.WithTimeout(c, ps.contextTimeout)
+	defer cancel()
+
+	product.UpdatedAt = time.Now()
+	return ps.productRepo.Update(ctx, product, id)
+}

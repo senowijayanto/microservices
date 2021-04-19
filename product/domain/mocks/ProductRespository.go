@@ -90,3 +90,16 @@ func (_m *ProductRepository) Delete(ctx context.Context, id uint32) error  {
 
 	return r0
 }
+
+func (_m *ProductRepository) UpdateStock(ctx context.Context, p *domain.Product, id uint32) error {
+	ret := _m.Called(ctx, p)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *domain.Product) error); ok {
+		r0 = rf(ctx, p)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}

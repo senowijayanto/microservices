@@ -86,7 +86,7 @@ func TestProductController_Store(t *testing.T) {
 		ID:        1,
 		Name:      "Laptop Lenovo Thinkpad",
 		Price:     7000000,
-		Quantity:  10,
+		Stock:     10,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
@@ -117,12 +117,12 @@ func TestProductController_Store(t *testing.T) {
 	mockProdService.AssertExpectations(t)
 }
 
-func TestProductHandler_Update(t *testing.T) {
+func TestProductController_Update(t *testing.T) {
 	mockProduct := domain.Product{
 		ID:        1,
 		Name:      "Laptop Lenovo Thinkpad",
 		Price:     7000000,
-		Quantity:  10,
+		Stock:     10,
 		CreatedAt: time.Time{},
 		UpdatedAt: time.Time{},
 	}
@@ -156,7 +156,7 @@ func TestProductHandler_Update(t *testing.T) {
 	mockProdService.AssertExpectations(t)
 }
 
-func TestProductHandler_Delete(t *testing.T) {
+func TestProductController_Delete(t *testing.T) {
 	var mockProduct domain.Product
 	mockProdService := new(mocks.ProductService)
 	num := int(mockProduct.ID)

@@ -3,17 +3,18 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
-	"github.com/spf13/viper"
 	"log"
 	"net/url"
 	"time"
 
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+	"github.com/spf13/viper"
+
+	_productController "product/controller"
 	_productRepo "product/repository"
 	_productService "product/service"
-	_productController "product/controller"
 )
 
 func init() {
@@ -35,7 +36,6 @@ func main() {
 	dbUser := viper.GetString(`database.user`)
 	dbPass := viper.GetString(`database.pass`)
 	dbName := viper.GetString(`database.name`)
-	fmt.Println(dbPass)
 	connection := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPass, dbHost, dbPort, dbName)
 	val := url.Values{}
 	val.Add("parseTime", "1")
@@ -72,7 +72,7 @@ func main() {
 	timeoutContext := time.Duration(viper.GetInt("context.timeout")) * time.Second
 	productService := _productService.NewProductService(productRepo, timeoutContext)
 
-	// Setup Product Handler
+	// Setup Product Controller
 	_productController.NewProductController(e, productService)
 
 	// CORS

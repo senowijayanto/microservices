@@ -14,13 +14,13 @@ import (
 )
 
 var (
-	t = time.Now()
-	ts = t.Format("2006-01-02 15:04:05")
+	t       = time.Now()
+	ts      = t.Format("2006-01-02 15:04:05")
 	product = &domain.Product{
-		ID:        1,
-		Name:      "Laptop Lenovo",
-		Price:     3000000,
-		Quantity:  10,
+		ID:    1,
+		Name:  "Laptop Lenovo",
+		Price: 3000000,
+		Stock: 10,
 	}
 )
 
@@ -42,8 +42,8 @@ func TestProductRepository_Fetch(t *testing.T) {
 
 	query := "SELECT id, name, price, quantity, created_at, updated_at FROM product"
 
-	rows := sqlmock.NewRows([]string{"id", "name", "price", "quantity", "created_at", "updated_at"}).
-		AddRow(product.ID, product.Name, product.Price, product.Quantity, product.CreatedAt, product.UpdatedAt)
+	rows := sqlmock.NewRows([]string{"id", "name", "price", "stock", "created_at", "updated_at"}).
+		AddRow(product.ID, product.Name, product.Price, product.Stock, product.CreatedAt, product.UpdatedAt)
 
 	mock.ExpectQuery(query).WillReturnRows(rows)
 
@@ -62,8 +62,8 @@ func TestProductRepository_GetByID(t *testing.T) {
 
 	query := "SELECT id, name, price, quantity, created_at, updated_at FROM product WHERE id=\\?"
 
-	rows := sqlmock.NewRows([]string{"id", "name", "price", "quantity", "created_at", "updated_at"}).
-		AddRow(product.ID, product.Name, product.Price, product.Quantity, product.CreatedAt, product.UpdatedAt)
+	rows := sqlmock.NewRows([]string{"id", "name", "price", "stock", "created_at", "updated_at"}).
+		AddRow(product.ID, product.Name, product.Price, product.Stock, product.CreatedAt, product.UpdatedAt)
 
 	prep := mock.ExpectPrepare(query)
 	prep.ExpectQuery().WithArgs(product.ID).WillReturnRows(rows)
@@ -79,9 +79,9 @@ func TestProductRepository_Store(t *testing.T) {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
 
-	query := regexp.QuoteMeta(`INSERT INTO product (name, price, quantity, created_at, updated_at) VALUES (?, ?, ?, ?, ?)`)
+	query := regexp.QuoteMeta(`INSERT INTO product (name, price, stock, created_at, updated_at) VALUES (?, ?, ?, ?, ?)`)
 	prep := mock.ExpectPrepare(query)
-	prep.ExpectExec().WithArgs(product.Name, product.Price, product.Quantity, ts, ts).WillReturnResult(sqlmock.NewResult(1, 1))
+	prep.ExpectExec().WithArgs(product.Name, product.Price, product.Stock, ts, ts).WillReturnResult(sqlmock.NewResult(1, 1))
 
 	pr := repository.NewProductRepository(db)
 
@@ -96,9 +96,9 @@ func TestProductRepository_Update(t *testing.T) {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
 
-	query := regexp.QuoteMeta(`UPDATE product SET name=?, price=?, quantity=?, updated_at=? WHERE id=?`)
+	query := regexp.QuoteMeta(`UPDATE product SET name=?, price=?, stock=?, updated_at=? WHERE id=?`)
 	prep := mock.ExpectPrepare(query)
-	prep.ExpectExec().WithArgs(product.Name, product.Price, product.Quantity, ts, product.ID).WillReturnResult(sqlmock.NewResult(1, 1))
+	prep.ExpectExec().WithArgs(product.Name, product.Price, product.Stock, ts, product.ID).WillReturnResult(sqlmock.NewResult(1, 1))
 
 	pr := repository.NewProductRepository(db)
 
@@ -120,5 +120,21 @@ func TestProductRepository_Delete(t *testing.T) {
 
 	num := uint32(1)
 	err := repo.Delete(context.TODO(), num)
+	assert.NoError(t, err)
+}
+
+func TestProductRepository_UpdateStock(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+
+	query := regexp.QuoteMeta(`UPDATE product SET stock=?, updated_at=? WHERE id=?`)
+	prep := mock.ExpectPrepare(query)
+	prep.ExpectExec().WithArgs(product.Stock, ts, product.ID).WillReturnResult(sqlmock.NewResult(1, 1))
+
+	pr := repository.NewProductRepository(db)
+
+	err = pr.UpdateStock(context.TODO(), product, product.ID)
 	assert.NoError(t, err)
 }

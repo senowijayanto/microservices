@@ -113,3 +113,17 @@ func TestProductService_Delete(t *testing.T) {
 		mockProductRepo.AssertExpectations(t)
 	})
 }
+
+func TestProductService_UpdateStock(t *testing.T) {
+	mockProductRepo := new(mocks.ProductRepository)
+	mockProduct := domain.Product{ID: 1, Stock: 15}
+
+	t.Run("success", func(t *testing.T) {
+		mockProductRepo.On("Update", mock.Anything, &mockProduct).Once().Return(nil)
+		p := service.NewProductService(mockProductRepo, time.Second*2)
+
+		err := p.UpdateStock(context.TODO(), &mockProduct, mockProduct.ID)
+		assert.NoError(t, err)
+		mockProductRepo.AssertExpectations(t)
+	})
+}

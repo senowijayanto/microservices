@@ -9,6 +9,11 @@ import (
 	"time"
 )
 
+var (
+	t  = time.Now()
+	ts = t.Format("2006-01-02 15:04:05")
+)
+
 type productRepository struct {
 	Conn *sql.DB
 }
@@ -19,8 +24,8 @@ func NewProductRepository(db *sql.DB) domain.ProductRepository {
 	}
 }
 
-func (pr *productRepository) Fetch(ctx context.Context) (products []domain.Product, err error)  {
-	query := `SELECT id, name, price, quantity, created_at, updated_at FROM product`
+func (pr *productRepository) Fetch(ctx context.Context) (products []domain.Product, err error) {
+	query := `SELECT id, name, price, stock, created_at, updated_at FROM product`
 	rows, err := pr.Conn.QueryContext(ctx, query)
 	if err != nil {
 		log.Fatal(err)
@@ -36,7 +41,7 @@ func (pr *productRepository) Fetch(ctx context.Context) (products []domain.Produ
 	products = make([]domain.Product, 0)
 	for rows.Next() {
 		p := domain.Product{}
-		err = rows.Scan(&p.ID, &p.Name, &p.Price, &p.Quantity, &p.CreatedAt, &p.UpdatedAt)
+		err = rows.Scan(&p.ID, &p.Name, &p.Price, &p.Stock, &p.CreatedAt, &p.UpdatedAt)
 		if err != nil {
 			log.Fatal(err)
 			return nil, err
@@ -47,8 +52,8 @@ func (pr *productRepository) Fetch(ctx context.Context) (products []domain.Produ
 	return
 }
 
-func (pr *productRepository) GetByID(ctx context.Context, id uint32) (product domain.Product, err error)  {
-	query := `SELECT id, name, price, quantity, created_at, updated_at FROM product WHERE id=?`
+func (pr *productRepository) GetByID(ctx context.Context, id uint32) (product domain.Product, err error) {
+	query := `SELECT id, name, price, stock, created_at, updated_at FROM product WHERE id=?`
 
 	stmt, err := pr.Conn.PrepareContext(ctx, query)
 	if err != nil {
@@ -62,22 +67,20 @@ func (pr *productRepository) GetByID(ctx context.Context, id uint32) (product do
 		&product.ID,
 		&product.Name,
 		&product.Price,
-		&product.Quantity,
+		&product.Stock,
 		&product.CreatedAt,
 		&product.UpdatedAt)
 	return
 }
 
-func (pr *productRepository) Store(ctx context.Context, product *domain.Product) (err error)  {
-	query := `INSERT INTO product (name, price, quantity, created_at, updated_at) VALUES (?, ?, ?, ?, ?)`
+func (pr *productRepository) Store(ctx context.Context, product *domain.Product) (err error) {
+	query := `INSERT INTO product (name, price, stock, created_at, updated_at) VALUES (?, ?, ?, ?, ?)`
 	stmt, err := pr.Conn.PrepareContext(ctx, query)
 	if err != nil {
 		return
 	}
 
-	t := time.Now()
-	ts := t.Format("2006-01-02 15:04:05")
-	res, err := stmt.ExecContext(ctx, product.Name, product.Price, product.Quantity, ts, ts)
+	res, err := stmt.ExecContext(ctx, product.Name, product.Price, product.Stock, ts, ts)
 	if err != nil {
 		return
 	}
@@ -90,17 +93,15 @@ func (pr *productRepository) Store(ctx context.Context, product *domain.Product)
 	return
 }
 
-func (pr *productRepository) Update(ctx context.Context, product *domain.Product, id uint32) (err error)  {
-	query := `UPDATE product SET name=?, price=?, quantity=?, updated_at=? WHERE id=?`
+func (pr *productRepository) Update(ctx context.Context, product *domain.Product, id uint32) (err error) {
+	query := `UPDATE product SET name=?, price=?, stock=?, updated_at=? WHERE id=?`
 
 	stmt, err := pr.Conn.PrepareContext(ctx, query)
 	if err != nil {
 		return
 	}
 
-	t := time.Now()
-	ts := t.Format("2006-01-02 15:04:05")
-	result, err := stmt.ExecContext(ctx, product.Name, product.Price, product.Quantity, ts, id)
+	result, err := stmt.ExecContext(ctx, product.Name, product.Price, product.Stock, ts, id)
 	if err != nil {
 		return
 	}
@@ -111,14 +112,14 @@ func (pr *productRepository) Update(ctx context.Context, product *domain.Product
 	}
 
 	if rowsAffected != 1 {
-		err = fmt.Errorf("Total Affected: %d", rowsAffected)
+		err = fmt.Errorf("total affected: %d", rowsAffected)
 		return
 	}
 
 	return
 }
 
-func (pr *productRepository) Delete(ctx context.Context, id uint32) (err error)  {
+func (pr *productRepository) Delete(ctx context.Context, id uint32) (err error) {
 	query := `DELETE FROM product WHERE id=?`
 
 	stmt, err := pr.Conn.PrepareContext(ctx, query)
@@ -137,7 +138,35 @@ func (pr *productRepository) Delete(ctx context.Context, id uint32) (err error) 
 	}
 
 	if rowsAffected != 1 {
-		err = fmt.Errorf("Total Affected: %d", rowsAffected)
+		err = fmt.Errorf("total affected: %d", rowsAffected)
+		return
+	}
+
+	return
+}
+
+func (pr *productRepository) UpdateStock(ctx context.Context, product *domain.Product, id uint32) (err error) {
+	query := `UPDATE product SET stock=?, updated_at=? WHERE id=?`
+
+	stmt, err := pr.Conn.PrepareContext(ctx, query)
+	if err != nil {
+		return
+	}
+
+	t := time.Now()
+	ts := t.Format("2006-01-02 15:04:05")
+	result, err := stmt.ExecContext(ctx, product.Stock, ts, id)
+	if err != nil {
+		return
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return
+	}
+
+	if rowsAffected != 1 {
+		err = fmt.Errorf("total affected: %d", rowsAffected)
 		return
 	}
 
