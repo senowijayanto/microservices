@@ -7,8 +7,8 @@
     "timeout": 2
   },
   "database": {
-    "host": "localhost",
-    "port": "33061",
+    "host": "user-db",
+    "port": "3306",
     "user": "root",
     "pass": "secret",
     "name": "users",

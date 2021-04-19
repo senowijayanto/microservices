@@ -8,6 +8,8 @@ services:
     container_name: user-service
     ports: 
       - "9091:9090"
+    depends_on: 
+      - user-db
 
   user-db:
     image: mariadb
@@ -24,8 +26,11 @@ services:
   ### Product Service ###
   product:
     build: "./product"
+    container_name: product-service
     ports:
       - "9092:9090"
+    depends_on: 
+      - product-db
 
   product-db:
     image: mariadb
@@ -42,8 +47,11 @@ services:
   ### Order Service ###
   order:
     build: "./order"
+    container_name: order-service
     ports:
       - "9093:9090"
+    depends_on: 
+      - order-db
 
   order-db:
     image: mariadb
@@ -69,11 +77,11 @@ services:
     restart: always
 
   ### Nginx ###
-  nginx:
+  server:
     image: nginx:latest
-    container_name: microservices_nginx
+    container_name: server
     ports: 
-      - "80:80"
+      - "8080:80"
     volumes: 
       - "./default.conf:/etc/nginx/conf.d/default.conf"
     depends_on: 

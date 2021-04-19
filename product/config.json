@@ -7,8 +7,8 @@
     "timeout": 2
   },
   "database": {
-    "host": "localhost",
-    "port": "33062",
+    "host": "product-db",
+    "port": "3306",
     "user": "root",
     "pass": "secret",
     "name": "products",

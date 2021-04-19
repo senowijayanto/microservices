@@ -31,9 +31,6 @@ Provides several API for order product.
 |--------|----------------------|------------------------------|
 | POST   | /api/v1/orders       | Create new order             |
 | GET    | /api/v1/orders       | Get all order informations   |
-| GET    | /api/v1/orders/:id   | Get order with ID            |
-| PUT    | /api/v1/orders/:id   | Edit order with ID           |
-| DELETE | /api/v1/orders/:id   | Delete order with ID         |
 
 ## Install
 
@@ -53,4 +50,12 @@ Provides several API for order product.
 
     ```bash
     docker-compose up -d
+    ```
+
+3. Running from local.
+
+    ```bash
+    http://localhost:8080/api/v1/users
+    http://localhost:8080/api/v1/products
+    http://localhost:8080/api/v1/orders
     ```
