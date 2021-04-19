@@ -18,6 +18,6 @@
     "connmaxlifetime": 60
   },
   "product": {
-    "url": "http://localhost:9090/api/v1/products/order/"
+    "url": "http://product:9090/api/v1/products/order/"
   }
 }

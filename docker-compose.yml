@@ -14,12 +14,10 @@ services:
   user-db:
     image: mariadb
     container_name: user-db
-    restart: always
     ports: 
       - "33061:3306"
     volumes:
       - ./db/user-db:/var/lib/mysql
-    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: secret
 
@@ -35,12 +33,10 @@ services:
   product-db:
     image: mariadb
     container_name: product-db
-    restart: always
     ports: 
       - "33062:3306"
     volumes:
       - ./db/product-db:/var/lib/mysql
-    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: secret
 
@@ -56,12 +52,10 @@ services:
   order-db:
     image: mariadb
     container_name: order-db
-    restart: always
     ports: 
       - "33063:3306"
     volumes:
       - ./db/order-db:/var/lib/mysql
-    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: secret
 
@@ -74,7 +68,6 @@ services:
     ports: 
       - 15672:15672
       - 5672:5672
-    restart: always
 
   ### Nginx ###
   server:
